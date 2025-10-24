@@ -31,6 +31,21 @@
 
 #include "inner.h"
 
+#include <time.h>  
+  
+// 全局 NTT 计时累加器(使用 __thread 确保线程安全)  
+static __thread clock_t ntt_total_time = 0;  
+  
+// 重置 NTT 计时器  
+void Zf(reset_ntt_timer)(void) {  
+    ntt_total_time = 0;  
+}  
+  
+// 获取累积的 NTT 时间  
+clock_t Zf(get_ntt_time)(void) {  
+    return ntt_total_time;  
+}
+
 #define MKN(logn)   ((size_t)1 << (logn))
 
 /* ==================================================================== */
@@ -979,6 +994,7 @@ static void
 modp_NTT2_ext(uint32_t *a, size_t stride, const uint32_t *gm, unsigned logn,
 	uint32_t p, uint32_t p0i)
 {
+	clock_t start = clock();
 	size_t t, m, n;
 
 	if (logn == 0) {
@@ -1009,6 +1025,7 @@ modp_NTT2_ext(uint32_t *a, size_t stride, const uint32_t *gm, unsigned logn,
 		}
 		t = ht;
 	}
+	ntt_total_time += clock() - start;
 }
 
 /*
@@ -1018,6 +1035,7 @@ static void
 modp_iNTT2_ext(uint32_t *a, size_t stride, const uint32_t *igm, unsigned logn,
 	uint32_t p, uint32_t p0i)
 {
+	clock_t start = clock();
 	size_t t, m, n, k;
 	uint32_t ni;
 	uint32_t *r;
@@ -1062,6 +1080,7 @@ modp_iNTT2_ext(uint32_t *a, size_t stride, const uint32_t *igm, unsigned logn,
 	for (k = 0, r = a; k < n; k ++, r += stride) {
 		*r = modp_montymul(*r, ni, p, p0i);
 	}
+	ntt_total_time += clock() - start;
 }
 
 /*

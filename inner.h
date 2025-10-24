@@ -894,6 +894,14 @@ void Zf(FFT)(fpr *f, unsigned logn);
 void Zf(reset_fft_timer)(void);  
 clock_t Zf(get_fft_time)(void);
 
+// NTT 计时函数(keygen.c 中的)  
+void Zf(reset_ntt_timer)(void);  
+clock_t Zf(get_ntt_time)(void);  
+  
+// NTT 计时函数(vrfy.c 中的)  
+void Zf(reset_ntt_timer_vrfy)(void);  
+clock_t Zf(get_ntt_time_vrfy)(void);
+
 /*
  * Compute the inverse FFT in-place: the source array should contain the
  * FFT representation of a real polynomial (N/2 elements); the resulting
@@ -1163,6 +1171,9 @@ int Zf(sampler)(void *ctx, fpr mu, fpr isigma);
 
 TARGET_AVX2
 int Zf(gaussian0_sampler)(prng *p);
+
+void Zf(reset_sampler_timer)(void);  
+clock_t Zf(get_sampler_time)(void);
 
 /* ==================================================================== */
 

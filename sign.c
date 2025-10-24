@@ -31,6 +31,21 @@
 
 #include "inner.h"
 
+#include <time.h>  
+  
+// 全局 sampler 计时累加器(使用 __thread 确保线程安全)  
+static __thread clock_t sampler_total_time = 0;  
+  
+// 重置 sampler 计时器  
+void Zf(reset_sampler_timer)(void) {  
+    sampler_total_time = 0;  
+}  
+  
+// 获取累积的 sampler 时间  
+clock_t Zf(get_sampler_time)(void) {  
+    return sampler_total_time;  
+}
+
 /* =================================================================== */
 
 /*
@@ -1094,6 +1109,7 @@ TARGET_AVX2
 int
 Zf(gaussian0_sampler)(prng *p)
 {
+	//clock_t start = clock();
 #if FALCON_AVX2 // yyyAVX2+1
 
 	/*
@@ -1356,6 +1372,7 @@ TARGET_AVX2
 int
 Zf(sampler)(void *ctx, fpr mu, fpr isigma)
 {
+	//clock_t start = clock();
 	sampler_context *spc;
 	int s;
 	fpr r, dss, ccs;

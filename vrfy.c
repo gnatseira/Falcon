@@ -31,6 +31,21 @@
 
 #include "inner.h"
 
+#include <time.h>  
+  
+// 全局 NTT 计时累加器(使用 __thread 确保线程安全)  
+static __thread clock_t ntt_total_time_vrfy = 0;  
+  
+// 重置 NTT 计时器  
+void Zf(reset_ntt_timer_vrfy)(void) {  
+    ntt_total_time_vrfy = 0;  
+}  
+  
+// 获取累积的 NTT 时间  
+clock_t Zf(get_ntt_time_vrfy)(void) {  
+    return ntt_total_time_vrfy;  
+}
+
 /* ===================================================================== */
 /*
  * Constants for NTT.
@@ -504,6 +519,7 @@ mq_div_12289(uint32_t x, uint32_t y)
 static void
 mq_NTT(uint16_t *a, unsigned logn)
 {
+	clock_t start = clock();
 	size_t n, t, m;
 
 	n = (size_t)1 << logn;
@@ -529,6 +545,7 @@ mq_NTT(uint16_t *a, unsigned logn)
 		}
 		t = ht;
 	}
+	ntt_total_time_vrfy += clock() - start;
 }
 
 /*
@@ -537,6 +554,7 @@ mq_NTT(uint16_t *a, unsigned logn)
 static void
 mq_iNTT(uint16_t *a, unsigned logn)
 {
+	clock_t start = clock();
 	size_t n, t, m;
 	uint32_t ni;
 
@@ -585,6 +603,7 @@ mq_iNTT(uint16_t *a, unsigned logn)
 	for (m = 0; m < n; m ++) {
 		a[m] = (uint16_t)mq_montymul(a[m], ni);
 	}
+	ntt_total_time_vrfy += clock() - start;
 }
 
 /*

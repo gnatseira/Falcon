@@ -313,11 +313,13 @@ test_speed_falcon(unsigned logn, double threshold)
 	bc.sigct = xmalloc(FALCON_SIG_CT_SIZE(logn));
 	bc.sigct_len = 0;
 
+	// ========== 密钥生成 ==========  
 	{  
         clock_t begin, end;  
         unsigned long num = 1;  
           
         Zf(reset_fft_timer)();  
+		Zf(reset_ntt_timer)();
         begin = clock();  
           
         // 手动实现 do_bench 逻辑  
@@ -346,10 +348,13 @@ test_speed_falcon(unsigned logn, double threshold)
         }  
           
         double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
-        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC; 
+		double ntt_seconds = (double)Zf(get_ntt_time)() / CLOCKS_PER_SEC;   
         double fft_percentage = 100.0 * fft_seconds / total_seconds;  
-        double avg_time_ms = total_seconds * 1000.0 / (double)num;  
-        printf(" %8.2f(%4.1f%%)", avg_time_ms, fft_percentage);  
+		double ntt_percentage = 100.0 * ntt_seconds / total_seconds;
+        double avg_time_ms = total_seconds * 1000.0 / (double)num;
+		printf(" %8.2f(FFT:%4.1f%% NTT:%4.1f%%)",   
+           avg_time_ms, fft_percentage, ntt_percentage);
         fflush(stdout);  
     }
 
@@ -358,7 +363,8 @@ test_speed_falcon(unsigned logn, double threshold)
         clock_t begin, end;  
         unsigned long num = 1;  
           
-        Zf(reset_fft_timer)();  
+        Zf(reset_fft_timer)(); 
+		Zf(reset_ntt_timer)();  
         begin = clock();  
           
         bench_expand_privkey(&bc, 5);  // 预热  
@@ -386,10 +392,13 @@ test_speed_falcon(unsigned logn, double threshold)
         }  
           
         double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
-        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
-        double fft_percentage = 100.0 * fft_seconds / total_seconds;  
-        double avg_time_us = total_seconds * 1000000.0 / (double)num;  
-        printf(" %8.2f(%4.1f%%)", avg_time_us, fft_percentage);  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;
+		double ntt_seconds = (double)Zf(get_ntt_time)() / CLOCKS_PER_SEC;    
+        double fft_percentage = 100.0 * fft_seconds / total_seconds;
+		double ntt_percentage = 100.0 * ntt_seconds / total_seconds;      
+        double avg_time_us = total_seconds * 1000000.0 / (double)num;   
+		printf(" %8.2f(FFT:%4.1f%% NTT:%4.1f%%)",   
+           avg_time_us, fft_percentage, ntt_percentage);  
         fflush(stdout);  
     }  
   
@@ -399,6 +408,7 @@ test_speed_falcon(unsigned logn, double threshold)
         unsigned long num = 1;  
           
         Zf(reset_fft_timer)();  
+		Zf(reset_ntt_timer)();  ;
         begin = clock();  
           
         bench_sign_dyn(&bc, 5);  // 预热  
@@ -427,9 +437,12 @@ test_speed_falcon(unsigned logn, double threshold)
           
         double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
         double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
-        double fft_percentage = 100.0 * fft_seconds / total_seconds;  
-        double avg_time_us = total_seconds * 1000000.0 / (double)num;  
-        printf(" %8.2f(%4.1f%%)", avg_time_us, fft_percentage);  
+		double ntt_seconds = (double)Zf(get_ntt_time)() / CLOCKS_PER_SEC;   
+        double fft_percentage = 100.0 * fft_seconds / total_seconds;
+		double ntt_percentage = 100.0 * ntt_seconds / total_seconds;     
+        double avg_time_us = total_seconds * 1000000.0 / (double)num;    
+		printf(" %8.2f(FFT:%4.1f%% NTT:%4.1f%%)",   
+           avg_time_us, fft_percentage, ntt_percentage);  
         fflush(stdout);  
     }  
   
@@ -439,6 +452,7 @@ test_speed_falcon(unsigned logn, double threshold)
         unsigned long num = 1;  
           
         Zf(reset_fft_timer)();  
+		Zf(reset_ntt_timer)();  
         begin = clock();  
           
         bench_sign_dyn_ct(&bc, 5);  // 预热  
@@ -466,10 +480,13 @@ test_speed_falcon(unsigned logn, double threshold)
         }  
           
         double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
-        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;
+		double ntt_seconds = (double)Zf(get_ntt_time)() / CLOCKS_PER_SEC;     
         double fft_percentage = 100.0 * fft_seconds / total_seconds;  
-        double avg_time_us = total_seconds * 1000000.0 / (double)num;  
-        printf(" %8.2f(%4.1f%%)", avg_time_us, fft_percentage);  
+		double ntt_percentage = 100.0 * ntt_seconds / total_seconds;   
+        double avg_time_us = total_seconds * 1000000.0 / (double)num;    
+		printf(" %8.2f(FFT:%4.1f%% NTT:%4.1f%%)",   
+           avg_time_us, fft_percentage, ntt_percentage); 
         fflush(stdout);  
     }  
   
@@ -478,7 +495,8 @@ test_speed_falcon(unsigned logn, double threshold)
         clock_t begin, end;  
         unsigned long num = 1;  
           
-        Zf(reset_fft_timer)();  
+        Zf(reset_fft_timer)();
+		Zf(reset_ntt_timer)();  
         begin = clock();  
           
         bench_sign_tree(&bc, 5);  // 预热  
@@ -506,10 +524,13 @@ test_speed_falcon(unsigned logn, double threshold)
         }  
           
         double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
-        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC; 
+		double ntt_seconds = (double)Zf(get_ntt_time)() / CLOCKS_PER_SEC;     
         double fft_percentage = 100.0 * fft_seconds / total_seconds;  
-        double avg_time_us = total_seconds * 1000000.0 / (double)num;  
-        printf(" %8.2f(%4.1f%%)", avg_time_us, fft_percentage);  
+		double ntt_percentage = 100.0 * ntt_seconds / total_seconds;  
+        double avg_time_us = total_seconds * 1000000.0 / (double)num;   
+		printf(" %8.2f(FFT:%4.1f%% NTT:%4.1f%%)",   
+           avg_time_us, fft_percentage, ntt_percentage);
         fflush(stdout);  
     }    
 
@@ -518,7 +539,8 @@ test_speed_falcon(unsigned logn, double threshold)
         clock_t begin, end;  
         unsigned long num = 1;  
           
-        Zf(reset_fft_timer)();  
+        Zf(reset_fft_timer)();
+		Zf(reset_ntt_timer)();   
         begin = clock();  
           
         bench_sign_tree_ct(&bc, 5);  // 预热  
@@ -546,10 +568,13 @@ test_speed_falcon(unsigned logn, double threshold)
         }  
           
         double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
-        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC; 
+		double ntt_seconds = (double)Zf(get_ntt_time)() / CLOCKS_PER_SEC;  
         double fft_percentage = 100.0 * fft_seconds / total_seconds;  
+		double ntt_percentage = 100.0 * ntt_seconds / total_seconds;  
         double avg_time_us = total_seconds * 1000000.0 / (double)num;  
-        printf(" %8.2f(%4.1f%%)", avg_time_us, fft_percentage);  
+        printf(" %8.2f(FFT:%4.1f%% NTT:%4.1f%%)",   
+           avg_time_us, fft_percentage, ntt_percentage);  
         fflush(stdout);  
     }  
   
@@ -558,7 +583,8 @@ test_speed_falcon(unsigned logn, double threshold)
         clock_t begin, end;  
         unsigned long num = 1;  
           
-        Zf(reset_fft_timer)();  
+        Zf(reset_fft_timer)(); 
+		Zf(reset_ntt_timer_vrfy)(); 
         begin = clock();  
           
         bench_verify(&bc, 5);  // 预热  
@@ -586,10 +612,13 @@ test_speed_falcon(unsigned logn, double threshold)
         }  
           
         double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
-        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
-        double fft_percentage = 100.0 * fft_seconds / total_seconds;  
-        double avg_time_us = total_seconds * 1000000.0 / (double)num;  
-        printf(" %8.2f(%4.1f%%)", avg_time_us, fft_percentage);  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;
+		double ntt_seconds = (double)Zf(get_ntt_time_vrfy)() / CLOCKS_PER_SEC;  
+        double fft_percentage = 100.0 * fft_seconds / total_seconds; 
+		double ntt_percentage = 100.0 * ntt_seconds / total_seconds; 
+        double avg_time_us = total_seconds * 1000000.0 / (double)num;   
+		printf(" %8.2f(FFT:%4.1f%% NTT:%4.1f%%)",   
+           avg_time_us, fft_percentage, ntt_percentage);
         fflush(stdout);  
     }  
   
@@ -598,7 +627,8 @@ test_speed_falcon(unsigned logn, double threshold)
         clock_t begin, end;  
         unsigned long num = 1;  
           
-        Zf(reset_fft_timer)();  
+        Zf(reset_fft_timer)();
+		Zf(reset_ntt_timer_vrfy)();   
         begin = clock();  
           
         bench_verify_ct(&bc, 5);  // 预热  
@@ -626,10 +656,15 @@ test_speed_falcon(unsigned logn, double threshold)
         }  
           
         double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
-        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;
+		double ntt_seconds = (double)Zf(get_ntt_time_vrfy)() / CLOCKS_PER_SEC;  
+		double sampler_seconds = (double)Zf(get_sampler_time)() / CLOCKS_PER_SEC;
         double fft_percentage = 100.0 * fft_seconds / total_seconds;  
+		double ntt_percentage = 100.0 * ntt_seconds / total_seconds;
+		double sampler_percentage = 100.0 * sampler_seconds / total_seconds;
         double avg_time_us = total_seconds * 1000000.0 / (double)num;  
-        printf(" %8.2f(%4.1f%%)", avg_time_us, fft_percentage);  
+        printf(" %8.2f(FFT:%4.1f%% NTT:%4.1f%% Samp:%4.1f%%)",   
+           avg_time_us, fft_percentage, ntt_percentage, sampler_percentage); 
         fflush(stdout);  
     }  
 
@@ -696,7 +731,8 @@ main(int argc, char *argv[])
 	printf("sdc, stc, vvc: like sd, st and vv, but with constant-time hash-to-point\n");
 	printf("keygen in milliseconds, other values in microseconds\n");
 	printf("\n");
-	printf("degree  kg(ms)   ek(us)   sd(us)  sdc(us)   st(us)  stc(us)   vv(us)  vvc(us)\n");
+	//printf("degree  kg(ms)   ek(us)   sd(us)  sdc(us)   st(us)  stc(us)   vv(us)  vvc(us)\n");
+	printf("degree  kg(ms)          ek(us)          sd(us)         sdc(us)          st(us)         stc(us)          vv(us)         vvc(us)\n");  
 	fflush(stdout);
 	test_speed_falcon(8, threshold);
 	test_speed_falcon(9, threshold);
