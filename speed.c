@@ -39,6 +39,7 @@
  */
 
 #include "falcon.h"
+#include "inner.h" 
 
 static void *
 xmalloc(size_t len)
@@ -312,9 +313,330 @@ test_speed_falcon(unsigned logn, double threshold)
 	bc.sigct = xmalloc(FALCON_SIG_CT_SIZE(logn));
 	bc.sigct_len = 0;
 
-	printf(" %8.2f",
-		do_bench(&bench_keygen, &bc, threshold) / 1000000.0);
-	fflush(stdout);
+	{  
+        clock_t begin, end;  
+        unsigned long num = 1;  
+          
+        Zf(reset_fft_timer)();  
+        begin = clock();  
+          
+        // 手动实现 do_bench 逻辑  
+        bench_keygen(&bc, 5);  // 预热  
+          
+        for (;;) {  
+            int r = bench_keygen(&bc, num);  
+            if (r != 0) {  
+                fprintf(stderr, "ERR: %d\n", r);  
+                break;  
+            }  
+            end = clock();  
+            double tt = (double)(end - begin) / (double)CLOCKS_PER_SEC;  
+            if (tt >= threshold) {  
+                break;  
+            }  
+            if (tt < 0.1) {  
+                num <<= 1;  
+            } else {  
+                unsigned long num2 = (unsigned long)((double)num * (threshold * 1.1) / tt);  
+                if (num2 <= num) {  
+                    num2 = num + 1;  
+                }  
+                num = num2;  
+            }  
+        }  
+          
+        double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
+        double fft_percentage = 100.0 * fft_seconds / total_seconds;  
+        double avg_time_ms = total_seconds * 1000.0 / (double)num;  
+        printf(" %8.2f(%4.1f%%)", avg_time_ms, fft_percentage);  
+        fflush(stdout);  
+    }
+
+	// ========== 私钥扩展 ==========  
+    {  
+        clock_t begin, end;  
+        unsigned long num = 1;  
+          
+        Zf(reset_fft_timer)();  
+        begin = clock();  
+          
+        bench_expand_privkey(&bc, 5);  // 预热  
+          
+        for (;;) {  
+            int r = bench_expand_privkey(&bc, num);  
+            if (r != 0) {  
+                fprintf(stderr, "ERR: %d\n", r);  
+                break;  
+            }  
+            end = clock();  
+            double tt = (double)(end - begin) / (double)CLOCKS_PER_SEC;  
+            if (tt >= threshold) {  
+                break;  
+            }  
+            if (tt < 0.1) {  
+                num <<= 1;  
+            } else {  
+                unsigned long num2 = (unsigned long)((double)num * (threshold * 1.1) / tt);  
+                if (num2 <= num) {  
+                    num2 = num + 1;  
+                }  
+                num = num2;  
+            }  
+        }  
+          
+        double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
+        double fft_percentage = 100.0 * fft_seconds / total_seconds;  
+        double avg_time_us = total_seconds * 1000000.0 / (double)num;  
+        printf(" %8.2f(%4.1f%%)", avg_time_us, fft_percentage);  
+        fflush(stdout);  
+    }  
+  
+    // ========== 签名生成 - 动态模式 ==========  
+    {  
+        clock_t begin, end;  
+        unsigned long num = 1;  
+          
+        Zf(reset_fft_timer)();  
+        begin = clock();  
+          
+        bench_sign_dyn(&bc, 5);  // 预热  
+          
+        for (;;) {  
+            int r = bench_sign_dyn(&bc, num);  
+            if (r != 0) {  
+                fprintf(stderr, "ERR: %d\n", r);  
+                break;  
+            }  
+            end = clock();  
+            double tt = (double)(end - begin) / (double)CLOCKS_PER_SEC;  
+            if (tt >= threshold) {  
+                break;  
+            }  
+            if (tt < 0.1) {  
+                num <<= 1;  
+            } else {  
+                unsigned long num2 = (unsigned long)((double)num * (threshold * 1.1) / tt);  
+                if (num2 <= num) {  
+                    num2 = num + 1;  
+                }  
+                num = num2;  
+            }  
+        }  
+          
+        double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
+        double fft_percentage = 100.0 * fft_seconds / total_seconds;  
+        double avg_time_us = total_seconds * 1000000.0 / (double)num;  
+        printf(" %8.2f(%4.1f%%)", avg_time_us, fft_percentage);  
+        fflush(stdout);  
+    }  
+  
+    // ========== 签名生成 - 动态模式(常量时间) ==========  
+    {  
+        clock_t begin, end;  
+        unsigned long num = 1;  
+          
+        Zf(reset_fft_timer)();  
+        begin = clock();  
+          
+        bench_sign_dyn_ct(&bc, 5);  // 预热  
+          
+        for (;;) {  
+            int r = bench_sign_dyn_ct(&bc, num);  
+            if (r != 0) {  
+                fprintf(stderr, "ERR: %d\n", r);  
+                break;  
+            }  
+            end = clock();  
+            double tt = (double)(end - begin) / (double)CLOCKS_PER_SEC;  
+            if (tt >= threshold) {  
+                break;  
+            }  
+            if (tt < 0.1) {  
+                num <<= 1;  
+            } else {  
+                unsigned long num2 = (unsigned long)((double)num * (threshold * 1.1) / tt);  
+                if (num2 <= num) {  
+                    num2 = num + 1;  
+                }  
+                num = num2;  
+            }  
+        }  
+          
+        double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
+        double fft_percentage = 100.0 * fft_seconds / total_seconds;  
+        double avg_time_us = total_seconds * 1000000.0 / (double)num;  
+        printf(" %8.2f(%4.1f%%)", avg_time_us, fft_percentage);  
+        fflush(stdout);  
+    }  
+  
+    // ========== 签名生成 - 树模式 ==========  
+    {  
+        clock_t begin, end;  
+        unsigned long num = 1;  
+          
+        Zf(reset_fft_timer)();  
+        begin = clock();  
+          
+        bench_sign_tree(&bc, 5);  // 预热  
+          
+        for (;;) {  
+            int r = bench_sign_tree(&bc, num);  
+            if (r != 0) {  
+                fprintf(stderr, "ERR: %d\n", r);  
+                break;  
+            }  
+            end = clock();  
+            double tt = (double)(end - begin) / (double)CLOCKS_PER_SEC;  
+            if (tt >= threshold) {  
+                break;  
+            }  
+            if (tt < 0.1) {  
+                num <<= 1;  
+            } else {  
+                unsigned long num2 = (unsigned long)((double)num * (threshold * 1.1) / tt);  
+                if (num2 <= num) {  
+                    num2 = num + 1;  
+                }  
+                num = num2;  
+            }  
+        }  
+          
+        double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
+        double fft_percentage = 100.0 * fft_seconds / total_seconds;  
+        double avg_time_us = total_seconds * 1000000.0 / (double)num;  
+        printf(" %8.2f(%4.1f%%)", avg_time_us, fft_percentage);  
+        fflush(stdout);  
+    }    
+
+	// ========== 签名生成 - 树模式(常量时间) ==========  
+    {  
+        clock_t begin, end;  
+        unsigned long num = 1;  
+          
+        Zf(reset_fft_timer)();  
+        begin = clock();  
+          
+        bench_sign_tree_ct(&bc, 5);  // 预热  
+          
+        for (;;) {  
+            int r = bench_sign_tree_ct(&bc, num);  
+            if (r != 0) {  
+                fprintf(stderr, "ERR: %d\n", r);  
+                break;  
+            }  
+            end = clock();  
+            double tt = (double)(end - begin) / (double)CLOCKS_PER_SEC;  
+            if (tt >= threshold) {  
+                break;  
+            }  
+            if (tt < 0.1) {  
+                num <<= 1;  
+            } else {  
+                unsigned long num2 = (unsigned long)((double)num * (threshold * 1.1) / tt);  
+                if (num2 <= num) {  
+                    num2 = num + 1;  
+                }  
+                num = num2;  
+            }  
+        }  
+          
+        double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
+        double fft_percentage = 100.0 * fft_seconds / total_seconds;  
+        double avg_time_us = total_seconds * 1000000.0 / (double)num;  
+        printf(" %8.2f(%4.1f%%)", avg_time_us, fft_percentage);  
+        fflush(stdout);  
+    }  
+  
+    // ========== 验证 ==========  
+    {  
+        clock_t begin, end;  
+        unsigned long num = 1;  
+          
+        Zf(reset_fft_timer)();  
+        begin = clock();  
+          
+        bench_verify(&bc, 5);  // 预热  
+          
+        for (;;) {  
+            int r = bench_verify(&bc, num);  
+            if (r != 0) {  
+                fprintf(stderr, "ERR: %d\n", r);  
+                break;  
+            }  
+            end = clock();  
+            double tt = (double)(end - begin) / (double)CLOCKS_PER_SEC;  
+            if (tt >= threshold) {  
+                break;  
+            }  
+            if (tt < 0.1) {  
+                num <<= 1;  
+            } else {  
+                unsigned long num2 = (unsigned long)((double)num * (threshold * 1.1) / tt);  
+                if (num2 <= num) {  
+                    num2 = num + 1;  
+                }  
+                num = num2;  
+            }  
+        }  
+          
+        double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
+        double fft_percentage = 100.0 * fft_seconds / total_seconds;  
+        double avg_time_us = total_seconds * 1000000.0 / (double)num;  
+        printf(" %8.2f(%4.1f%%)", avg_time_us, fft_percentage);  
+        fflush(stdout);  
+    }  
+  
+    // ========== 验证(常量时间) ==========  
+    {  
+        clock_t begin, end;  
+        unsigned long num = 1;  
+          
+        Zf(reset_fft_timer)();  
+        begin = clock();  
+          
+        bench_verify_ct(&bc, 5);  // 预热  
+          
+        for (;;) {  
+            int r = bench_verify_ct(&bc, num);  
+            if (r != 0) {  
+                fprintf(stderr, "ERR: %d\n", r);  
+                break;  
+            }  
+            end = clock();  
+            double tt = (double)(end - begin) / (double)CLOCKS_PER_SEC;  
+            if (tt >= threshold) {  
+                break;  
+            }  
+            if (tt < 0.1) {  
+                num <<= 1;  
+            } else {  
+                unsigned long num2 = (unsigned long)((double)num * (threshold * 1.1) / tt);  
+                if (num2 <= num) {  
+                    num2 = num + 1;  
+                }  
+                num = num2;  
+            }  
+        }  
+          
+        double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
+        double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;  
+        double fft_percentage = 100.0 * fft_seconds / total_seconds;  
+        double avg_time_us = total_seconds * 1000000.0 / (double)num;  
+        printf(" %8.2f(%4.1f%%)", avg_time_us, fft_percentage);  
+        fflush(stdout);  
+    }  
+
+	/*
+	//printf(" %8.2f",
+		//do_bench(&bench_keygen, &bc, threshold) / 1000000.0);
+	//fflush(stdout);
 	printf(" %8.2f",
 		do_bench(&bench_expand_privkey, &bc, threshold) / 1000.0);
 	fflush(stdout);
@@ -336,9 +658,10 @@ test_speed_falcon(unsigned logn, double threshold)
 	printf(" %8.2f",
 		do_bench(&bench_verify_ct, &bc, threshold) / 1000.0);
 	fflush(stdout);
-
+*/
 	printf("\n");
 	fflush(stdout);
+	
 
 	xfree(bc.tmp);
 	xfree(bc.pk);

@@ -891,6 +891,9 @@ prng_get_u8(prng *p)
  */
 void Zf(FFT)(fpr *f, unsigned logn);
 
+void Zf(reset_fft_timer)(void);  
+clock_t Zf(get_fft_time)(void);
+
 /*
  * Compute the inverse FFT in-place: the source array should contain the
  * FFT representation of a real polynomial (N/2 elements); the resulting

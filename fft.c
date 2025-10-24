@@ -30,6 +30,20 @@
  */
 
 #include "inner.h"
+#include <time.h>  
+  
+// 全局 FFT 计时累加器(使用 __thread 确保线程安全)  
+static __thread clock_t fft_total_time = 0;  
+  
+// 重置 FFT 计时器  
+void Zf(reset_fft_timer)(void) {  
+    fft_total_time = 0;  
+}  
+  
+// 获取累积的 FFT 时间  
+clock_t Zf(get_fft_time)(void) {  
+    return fft_total_time;  
+}
 
 /*
  * Rules for complex number macros:
@@ -171,6 +185,7 @@ TARGET_AVX2
 void
 Zf(FFT)(fpr *f, unsigned logn)
 {
+	clock_t start = clock();
 	/*
 	 * FFT algorithm in bit-reversal order uses the following
 	 * iterative algorithm:
@@ -297,6 +312,7 @@ Zf(FFT)(fpr *f, unsigned logn)
 		}
 		t = ht;
 	}
+	fft_total_time += clock() - start;
 }
 
 /* see inner.h */
@@ -304,6 +320,7 @@ TARGET_AVX2
 void
 Zf(iFFT)(fpr *f, unsigned logn)
 {
+	clock_t start = clock();
 	/*
 	 * Inverse FFT algorithm in bit-reversal order uses the following
 	 * iterative algorithm:
@@ -446,6 +463,7 @@ Zf(iFFT)(fpr *f, unsigned logn)
 			f[u] = fpr_mul(f[u], ni);
 		}
 	}
+	fft_total_time += clock() - start;
 }
 
 /* see inner.h */
