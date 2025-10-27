@@ -91,7 +91,7 @@ shake.o: shake.c config.h inner.h fpr.h
 sign.o: sign.c config.h inner.h fpr.h
 	$(CC) $(CFLAGS) -c -o sign.o sign.c
 
-speed.o: speed.c falcon.h
+speed.o: speed.c falcon.h inner.h
 	$(CC) $(CFLAGS) -c -o speed.o speed.c
 
 test_falcon.o: test_falcon.c falcon.h config.h inner.h fpr.h

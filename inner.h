@@ -1172,9 +1172,6 @@ int Zf(sampler)(void *ctx, fpr mu, fpr isigma);
 TARGET_AVX2
 int Zf(gaussian0_sampler)(prng *p);
 
-void Zf(reset_sampler_timer)(void);  
-clock_t Zf(get_sampler_time)(void);
-
 /* ==================================================================== */
 
 #endif

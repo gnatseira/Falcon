@@ -658,13 +658,11 @@ test_speed_falcon(unsigned logn, double threshold)
         double total_seconds = (double)(end - begin) / CLOCKS_PER_SEC;  
         double fft_seconds = (double)Zf(get_fft_time)() / CLOCKS_PER_SEC;
 		double ntt_seconds = (double)Zf(get_ntt_time_vrfy)() / CLOCKS_PER_SEC;  
-		double sampler_seconds = (double)Zf(get_sampler_time)() / CLOCKS_PER_SEC;
         double fft_percentage = 100.0 * fft_seconds / total_seconds;  
 		double ntt_percentage = 100.0 * ntt_seconds / total_seconds;
-		double sampler_percentage = 100.0 * sampler_seconds / total_seconds;
         double avg_time_us = total_seconds * 1000000.0 / (double)num;  
-        printf(" %8.2f(FFT:%4.1f%% NTT:%4.1f%% Samp:%4.1f%%)",   
-           avg_time_us, fft_percentage, ntt_percentage, sampler_percentage); 
+        printf(" %8.2f(FFT:%4.1f%% NTT:%4.1f%%)",   
+           avg_time_us, fft_percentage, ntt_percentage); 
         fflush(stdout);  
     }  
 

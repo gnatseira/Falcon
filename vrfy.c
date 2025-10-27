@@ -33,17 +33,24 @@
 
 #include <time.h>  
   
-// 全局 NTT 计时累加器(使用 __thread 确保线程安全)  
-static __thread clock_t ntt_total_time_vrfy = 0;  
+// 使用纳秒精度的计时  
+static inline uint64_t get_time_ns(void) {  
+    struct timespec ts;  
+    clock_gettime(CLOCK_MONOTONIC, &ts);  
+    return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;  
+}  
+  
+// 全局 NTT 计时累加器(vrfy 专用)  
+static __thread uint64_t ntt_total_time_ns_vrfy = 0;  
   
 // 重置 NTT 计时器  
 void Zf(reset_ntt_timer_vrfy)(void) {  
-    ntt_total_time_vrfy = 0;  
+    ntt_total_time_ns_vrfy = 0;  
 }  
   
 // 获取累积的 NTT 时间  
 clock_t Zf(get_ntt_time_vrfy)(void) {  
-    return ntt_total_time_vrfy;  
+    return (clock_t)(ntt_total_time_ns_vrfy * CLOCKS_PER_SEC / 1000000000ULL);  
 }
 
 /* ===================================================================== */
@@ -519,7 +526,7 @@ mq_div_12289(uint32_t x, uint32_t y)
 static void
 mq_NTT(uint16_t *a, unsigned logn)
 {
-	clock_t start = clock();
+	uint64_t start = get_time_ns();  
 	size_t n, t, m;
 
 	n = (size_t)1 << logn;
@@ -545,7 +552,7 @@ mq_NTT(uint16_t *a, unsigned logn)
 		}
 		t = ht;
 	}
-	ntt_total_time_vrfy += clock() - start;
+	ntt_total_time_ns_vrfy += get_time_ns() - start;
 }
 
 /*
@@ -554,7 +561,7 @@ mq_NTT(uint16_t *a, unsigned logn)
 static void
 mq_iNTT(uint16_t *a, unsigned logn)
 {
-	clock_t start = clock();
+	uint64_t start = get_time_ns();  
 	size_t n, t, m;
 	uint32_t ni;
 
@@ -603,7 +610,7 @@ mq_iNTT(uint16_t *a, unsigned logn)
 	for (m = 0; m < n; m ++) {
 		a[m] = (uint16_t)mq_montymul(a[m], ni);
 	}
-	ntt_total_time_vrfy += clock() - start;
+	ntt_total_time_ns_vrfy += get_time_ns() - start; 
 }
 
 /*

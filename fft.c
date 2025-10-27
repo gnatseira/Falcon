@@ -31,18 +31,26 @@
 
 #include "inner.h"
 #include <time.h>  
+
+// 使用纳秒精度的计时  
+static inline uint64_t get_time_ns(void) {  
+    struct timespec ts;  
+    clock_gettime(CLOCK_MONOTONIC, &ts);  
+    return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;  
+} 
   
 // 全局 FFT 计时累加器(使用 __thread 确保线程安全)  
-static __thread clock_t fft_total_time = 0;  
+static __thread uint64_t fft_total_time_ns = 0;  
   
 // 重置 FFT 计时器  
 void Zf(reset_fft_timer)(void) {  
-    fft_total_time = 0;  
+    fft_total_time_ns = 0;  
 }  
   
-// 获取累积的 FFT 时间  
+// 获取累积的 FFT 时间(转换为 clock_t)  
 clock_t Zf(get_fft_time)(void) {  
-    return fft_total_time;  
+    // 将纳秒转换为 clock_t  
+    return (clock_t)(fft_total_time_ns * CLOCKS_PER_SEC / 1000000000ULL);  
 }
 
 /*
@@ -185,7 +193,7 @@ TARGET_AVX2
 void
 Zf(FFT)(fpr *f, unsigned logn)
 {
-	clock_t start = clock();
+	uint64_t start = get_time_ns();
 	/*
 	 * FFT algorithm in bit-reversal order uses the following
 	 * iterative algorithm:
@@ -312,7 +320,7 @@ Zf(FFT)(fpr *f, unsigned logn)
 		}
 		t = ht;
 	}
-	fft_total_time += clock() - start;
+	fft_total_time_ns += get_time_ns() - start;
 }
 
 /* see inner.h */
@@ -320,7 +328,7 @@ TARGET_AVX2
 void
 Zf(iFFT)(fpr *f, unsigned logn)
 {
-	clock_t start = clock();
+	uint64_t start = get_time_ns();
 	/*
 	 * Inverse FFT algorithm in bit-reversal order uses the following
 	 * iterative algorithm:
@@ -463,7 +471,7 @@ Zf(iFFT)(fpr *f, unsigned logn)
 			f[u] = fpr_mul(f[u], ni);
 		}
 	}
-	fft_total_time += clock() - start;
+	fft_total_time_ns += get_time_ns() - start;
 }
 
 /* see inner.h */

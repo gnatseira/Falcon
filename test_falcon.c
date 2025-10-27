@@ -38,6 +38,15 @@
 #include "inner.h"
 #include "falcon.h"
 
+#include <time.h>  
+  
+// 使用纳秒精度的计时  
+static inline uint64_t get_time_ns(void) {  
+    struct timespec ts;  
+    clock_gettime(CLOCK_MONOTONIC, &ts);  
+    return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;  
+}  
+
 /*
  * If using ChaCha20 during keygen, then we don't generate the same
  * outputs from the same seeds, and we don't faithfully reproduce the
@@ -3576,8 +3585,8 @@ test_sampler(void)
 	fpr isigma, mu, muinc;
 	int i;
 
-	printf("Test sampler: ");
-	fflush(stdout);
+	//printf("Test sampler: ");
+	//fflush(stdout);
 
 	inner_shake256_init(&rng);
 	inner_shake256_inject(&rng, (const void *)"test sampler", 12);
@@ -3592,12 +3601,12 @@ test_sampler(void)
 		test_sampler_rand(&sc, mu, isigma);
 		mu = fpr_add(mu, muinc);
 
-		printf(".");
-		fflush(stdout);
+		//printf(".");
+		//fflush(stdout);
 	}
 
-	printf(" done.\n");
-	fflush(stdout);
+	//printf(" done.\n");
+	//fflush(stdout);
 }
 
 static void
@@ -5017,7 +5026,12 @@ main(void)
 	test_FP_block();
 	test_poly();
 	test_gaussian0_sampler();
-	test_sampler();
+	uint64_t start = get_time_ns();
+	for (int i = 0; i < 100; ++i) {
+		test_sampler();
+	}
+	double sampler_seconds = (get_time_ns() - start) * CLOCKS_PER_SEC / 1000000000ULL/ CLOCKS_PER_SEC;
+	printf("sampler cost %lf seconds\n", sampler_seconds);
 	test_sign();
 	test_keygen();
 	test_external_API();
